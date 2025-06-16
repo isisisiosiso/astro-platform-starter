@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WA Blast Sederhana</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: white;
+      padding: 25px;
+      margin-top: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 500px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #25D366;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      background: #25D366;
+      color: white;
+      border: none;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #1da955;
+    }
+
+    .history {
+      margin-top: 30px;
+    }
+
+    .history h3 {
+      color: #333;
+    }
+
+    .history ul {
+      padding-left: 20px;
+    }
+
+    .history li {
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>WA Blast</h2>
+    <label for="numbers">Nomor HP (pisahkan dengan koma):</label>
+    <input type="text" id="numbers" placeholder="6281234567890,6281111111111">
+
+    <label for="preset">Pilih Pesan Preset:</label>
+    <select id="preset">
+      <option value="">-- Pilih Pesan --</option>
+      <option value="Halo! Ini adalah pesan broadcast.">Halo! Ini adalah pesan broadcast.</option>
+      <option value="Terima kasih sudah menjadi pelanggan kami!">Terima kasih sudah menjadi pelanggan kami!</option>
+      <option value="Jangan lewatkan promo kami minggu ini!">Jangan lewatkan promo kami minggu ini!</option>
+    </select>
+
+    <label for="custom">Atau Tulis Pesan Kustom:</label>
+    <textarea id="custom" rows="4" placeholder="Tulis pesan Anda..."></textarea>
+
+    <button onclick="sendMessages()">Kirim Pesan</button>
+
+    <div class="history">
+      <h3>Riwayat Pengiriman:</h3>
+      <ul id="historyList"></ul>
+    </div>
+  </div>
+
+  <script>
+    // Load history from localStorage
+    function loadHistory() {
+      const history = JSON.parse(localStorage.getItem('waHistory')) || [];
+      const historyList = document.getElementById('historyList');
+      historyList.innerHTML = '';
+      history.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `[${item.date}] ke ${item.numbers.join(', ')}: ${item.message}`;
+        historyList.appendChild(li);
+      });
+    }
+
+    function saveToHistory(numbers, message) {
+      const history = JSON.parse(localStorage.getItem('waHistory')) || [];
+      const now = new Date();
+      const item = {
+        date: now.toLocaleString(),
+        numbers: numbers,
+        message: message
+      };
+      history.unshift(item); // push to top
+      localStorage.setItem('waHistory', JSON.stringify(history));
+      loadHistory();
+    }
+
+    function sendMessages() {
+      const numbers = document.getElementById('numbers').value.split(',').map(n => n.trim()).filter(n => n);
+      const presetMessage = document.getElementById('preset').value;
+      const customMessage = document.getElementById('custom').value.trim();
+      const message = customMessage || presetMessage;
+
+      if (!message) {
+        alert('Silakan isi pesan terlebih dahulu.');
+        return;
+      }
+
+      if (numbers.length === 0) {
+        alert('Masukkan minimal satu nomor.');
+        return;
+      }
+
+      saveToHistory(numbers, message);
+
+      numbers.forEach(num => {
+        const encodedMessage = encodeURIComponent(message);
+        const url = `https://wa.me/${num}?text=${encodedMessage}`;
+        window.open(url, '_blank');
+      });
+    }
+
+    loadHistory();
+  </script>
+</body>
+</html>
